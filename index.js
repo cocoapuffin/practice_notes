@@ -54,7 +54,7 @@ app.get('/api/notes/:id', (request, response, next) => {
   .catch(error => next(error))
 })
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body
 
   if (!body.content) {
@@ -73,23 +73,27 @@ app.post('/api/notes', (request, response) => {
 })
 
 app.put('/api/notes/:id', (request, response, next) => {
-    const {content, important} = request.body
+  const { content, important } = request.body
 
-    Note.findByIdAndUpdate(request.params.id)
-    .then(note => {
-      if(!note) {
-        return reponse.status(404).end()
+  const note = {
+    content,
+    important
+  }
+
+  Note.findByIdAndUpdate(
+    request.params.id,
+    note,
+    { new: true, runValidators: true }
+  )
+    .then(updatedNote => {
+      if (!updatedNote) {
+        return response.status(404).end()
       }
-      note.content = content
-      note.important = important 
 
-      return note.save().then((updatedNote) => {
-        response.json(updatedNote)
-      })
+      response.json(updatedNote)
     })
     .catch(error => next(error))
 })
-
 
 app.delete('/api/notes/:id', (request, response, next) => {
     Note.findByIdAndDelete(request.params.id)
